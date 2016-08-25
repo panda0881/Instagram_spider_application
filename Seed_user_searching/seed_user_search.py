@@ -1,21 +1,22 @@
-import math
-from matplotlib import pyplot as plt
+from Instagram_Spider import *
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import words
 from nltk.corpus import wordnet as wn
 from nltk.corpus import wordnet_ic
-from nltk.corpus import words
-from nltk.stem import WordNetLemmatizer
-from Instagram_Spider import *
+from matplotlib import pyplot as plt
+import math
+from sklearn import tree
 
 
 def store_tag_data(name, tag_data):
-    file_name = 'user_tag_data/' + name + '_tag_data.json'
+    file_name = 'user_tag_data/' +name + '_tag_data.json'
     file = open(file_name, 'w')
     json.dump(tag_data, file)
     file.close()
 
 
 def load_tag_data(name):
-    file_name = 'user_tag_data/' + name + '_tag_data.json'
+    file_name = 'user_tag_data/' +name + '_tag_data.json'
     file = open(file_name, 'r')
     tag_data = json.load(file)
     file.close()
@@ -23,7 +24,7 @@ def load_tag_data(name):
 
 
 def get_data(my_spider, name):
-    file_name = 'user_tag_data/' + name + '_tag_data.json'
+    file_name = 'user_tag_data/' +name + '_tag_data.json'
     if os.path.isfile(file_name):
         tag_data = load_tag_data(name)
     else:
@@ -59,7 +60,7 @@ def get_user_influence_power(user):
     if len(media_list) > 0:
         likes_number /= len(media_list)
         tags_number /= len(media_list)
-    quality = follower_number * 0.000525 + likes_number * 0.989 - tags_number * 6.32
+    quality = follower_number*0.000525 + likes_number*0.989 - tags_number*6.32
     if quality < 0:
         quality = 0
     if quality > 10000:
@@ -69,22 +70,8 @@ def get_user_influence_power(user):
     if quality == 0 or follower_number == 0:
         power = 0
     else:
-        power = math.log(quality * follower_number, 10)
+        power = math.log(quality*follower_number, 10)
     return power
-
-
-def successful_rate(successful_list, fail_list):
-    successful_number = 0
-    fail_number = 0
-    for tag_pair in successful_list:
-        successful_number += tag_pair[1]
-    for tag_pair in fail_list:
-        fail_number += tag_pair[1]
-    if successful_number == 0 and fail_number == 0:
-        my_rate = 0
-    else:
-        my_rate = successful_number / (successful_number + fail_number)
-    return my_rate
 
 
 def store_dictionary(dict_name, dict_data):
@@ -126,7 +113,7 @@ def display_result(data_dict, confidence, username):
     if total_value == 0:
         return
     for size in sizes:
-        final_sizes.append(size / total_value)
+        final_sizes.append(size/total_value)
     explode = tuple(explode_list)
     patches, l_text, p_text = plt.pie(final_sizes, explode=explode, labels=labels, colors=colors,
                                       autopct='%3.1f%%', shadow=False, startangle=90, pctdistance=0.7)
@@ -168,22 +155,19 @@ def tag2word(tag_list):
                 pos = len(tag)
             else:
                 pos -= 1
-    print('done...')
     return result_list
 
 
 def analyze_words(my_words, dictionary):
-    similarity_dictionary = dict()
     local_similarity_dictionary = dict()
     distribution_dictionary = dict()
     total_number = 0
     valid_word_count = 0
     for category in dictionary:
-        similarity_dictionary[category] = 0
         local_similarity_dictionary[category] = 0
         distribution_dictionary[category] = list()
     distribution_dictionary['unknown'] = list()
-    one_tenth = int(len(my_words) / 10)
+    one_tenth = int(len(my_words)/10)
     current_number = 0
     progress = 0
     total_words = 0
@@ -198,7 +182,6 @@ def analyze_words(my_words, dictionary):
             if word_pair[0] in dictionary[category]:
                 if not find_category:
                     valid_word_count += 1
-                similarity_dictionary[category] += 10 * word_pair[1]
                 total_number += word_pair[1]
                 distribution_dictionary[category].append(word_pair)
                 find_category = True
@@ -225,7 +208,6 @@ def analyze_words(my_words, dictionary):
                 except:
                     continue
             if total_categary_words > 0:
-                similarity_dictionary[category] += word_pair[1] * total_similarity / total_categary_words
                 local_similarity_dictionary[category] = total_similarity / total_categary_words
         final_category = 'others'
         for category in local_similarity_dictionary:
@@ -239,13 +221,6 @@ def analyze_words(my_words, dictionary):
             distribution_dictionary[final_category].append(word_pair)
         if not find_category:
             distribution_dictionary['unknown'].append(word_pair)
-    for category in similarity_dictionary:
-        if total_number != 0:
-            similarity_dictionary[category] /= total_number
-    if len(my_words) == 0:
-        recognition_rate = 0
-    else:
-        recognition_rate = valid_word_count / len(my_words)
     percentage_dictionary = dict()
 
     for category in distribution_dictionary:
@@ -258,8 +233,31 @@ def analyze_words(my_words, dictionary):
             percentage_dictionary[category] /= total_words
     print('done...')
     store_dictionary('Instagram_tag_dictionary.json', dictionary)
-    return similarity_dictionary, recognition_rate, distribution_dictionary, percentage_dictionary
+    return distribution_dictionary, percentage_dictionary
 
+
+def formatting_data(dictionary):
+    data_list = list()
+    category_list = ['art', 'food', 'life', 'fashion', 'travel', 'animal', 'family', 'others', 'unknown',
+                     'technology', 'sport']
+    for category in category_list:
+        data_list.append(dictionary[category])
+    return data_list
+
+
+def train_decision_tree(file_name):
+    file = open(file_name, 'r')
+    train_data = json.load(file)
+    file.close()
+    train_list = list()
+    train_result = list()
+    for train_pair in train_data:
+        tmp = formatting_data(train_pair[0])
+        train_list.append(tmp)
+        train_result.append(train_pair[1])
+    my_clf = tree.DecisionTreeClassifier()
+    my_clf.fit(train_list, train_result)
+    return my_clf
 
 wordlist = set(words.words())
 wordnet_lemmatizer = WordNetLemmatizer()
@@ -268,18 +266,59 @@ semcor_ic = wordnet_ic.ic('ic-semcor.dat')
 my_dictionary = load_dictionary('Instagram_tag_dictionary.json')
 wordlist = combine_dictionary(wordlist, my_dictionary)
 spider = InstagramSpider()
+clf = train_decision_tree('train_data.json')
+print('Finish building trees')
+start_tag_name = 'evolveboard'
+try:
+    file_name = start_tag_name + '_user_data.json'
+    file = open(file_name, 'r')
+    user_list = json.load(file)
+    file.close()
+except FileNotFoundError:
+    user_list = spider.get_user_from_tag(start_tag_name)
+file_name = 'potential_seed_user.json'
+file = open(file_name, 'r')
+final_list = json.load(file)
+file.close()
+print('Total number of user under this tag is: ' + str(len(user_list)))
+current_number = 0
+file_name = start_tag_name + '_user_data.json'
+file = open(file_name, 'w')
+json.dump(user_list, file)
+file.close()
 
-username = input('Please give me the user name to analyze: ')
-data = get_data(spider, username)
-print('data got...')
-print('analyzing tags from user: ' + username)
-words_from_tags = tag2word(tag_list=data)
-print('analyzing words from tags from user: ' + username)
-result, rate, distribute_result, percentage_result = analyze_words(my_words=words_from_tags,
-                                                                   dictionary=my_dictionary)
-print("successful rate of fitting words into dictionary is：%.2f%%" % (rate * 100))
-recognize_rate = 1 - percentage_result['unknown']
-print("our machine's current recognize rate is：%.2f%%" % (recognize_rate * 100))
-display_result(data_dict=percentage_result, confidence=recognize_rate, username=username)
+for username in user_list:
+    current_number += 1
+    print('Analyzing: ' + username + '(' + str(current_number) + '/' + str(len(user_list)) + ')')
+    if username in final_list:
+        print('We have got this user...')
+        continue
+    data = get_data(spider, username)
+    print('data got...')
+    print('analyzing tags from user: ' + username)
+    words_from_tags = tag2word(tag_list=data)
+    if len(words_from_tags) < 11:
+        print('The sample size is too small, so we have to discard this user...')
+        continue
+    print('analyzing words from tags from user: ' + username)
+    distribute_result, percentage_result = analyze_words(my_words=words_from_tags, dictionary=my_dictionary)
+    print('percentage result: ')
+    print(percentage_result)
+    recognize_rate = 1 - percentage_result['unknown']
+    print("our machine's current recognize rate is：%.2f%%" % (recognize_rate * 100))
+    if recognize_rate < 0.6:
+        print('The recognition rate is too low, so we have to discard this user.')
+        continue
+    user_data = formatting_data(percentage_result)
+    if not clf.predict(user_data):
+        print('This user does not fit our profile...')
+        continue
+    display_result(data_dict=percentage_result, confidence=recognize_rate, username=username)
+    final_list.append(username)
+    print('Current number of potential seed user is: ' + str(len(final_list)))
+    file_name = 'potential_seed_user.json'
+    file = open(file_name, 'w')
+    json.dump(final_list, file)
+    file.close()
 
 print('end')
