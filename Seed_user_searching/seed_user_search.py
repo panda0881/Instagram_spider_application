@@ -128,7 +128,6 @@ def display_result(data_dict, confidence, username):
     plt.text(-1.2, 1, 'social influence: ' + str(user_influence), fontsize=15)
     file_name = 'user_analysis_result/' + username + '_analysis.png'
     plt.savefig(file_name, format='png')
-    # plt.show()
 
 
 def combine_dictionary(official_word_list, dictionary):
@@ -269,7 +268,7 @@ wordlist = combine_dictionary(wordlist, my_dictionary)
 spider = InstagramSpider()
 clf = train_decision_tree('train_data.json')
 print('Finish building trees')
-start_tag_name = 'evolveboard'
+start_tag_name = input('Please give me a hashtag name to start with: ')
 try:
     file_name = start_tag_name + '_user_data.json'
     file = open(file_name, 'r')
