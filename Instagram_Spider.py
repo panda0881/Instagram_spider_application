@@ -94,9 +94,9 @@ class InstagramSpider:
         resp = requests.get(url)
         try:
             media = json.loads(resp.text)
+            self.numPosts += len(media['items'])
         except:
             print('there is something wrong with this user')
-        self.numPosts += len(media['items'])
         print('collecting data from ' + str(self.numPosts) + 'medias')
         for item in media['items']:
             self.full_media_list.append(item['code'])
