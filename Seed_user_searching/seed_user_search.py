@@ -9,14 +9,14 @@ from sklearn import tree
 
 
 def store_tag_data(name, tag_data):
-    file_name = 'user_tag_data/' +name + '_tag_data.json'
+    file_name = 'user_tag_data/' + name + '_tag_data.json'
     file = open(file_name, 'w')
     json.dump(tag_data, file)
     file.close()
 
 
 def load_tag_data(name):
-    file_name = 'user_tag_data/' +name + '_tag_data.json'
+    file_name = 'user_tag_data/' + name + '_tag_data.json'
     file = open(file_name, 'r')
     tag_data = json.load(file)
     file.close()
@@ -24,7 +24,7 @@ def load_tag_data(name):
 
 
 def get_data(my_spider, name):
-    file_name = 'user_tag_data/' +name + '_tag_data.json'
+    file_name = 'user_tag_data/' + name + '_tag_data.json'
     if os.path.isfile(file_name):
         tag_data = load_tag_data(name)
     else:
@@ -60,7 +60,7 @@ def get_user_influence_power(user):
     if len(media_list) > 0:
         likes_number /= len(media_list)
         tags_number /= len(media_list)
-    quality = follower_number*0.000525 + likes_number*0.989 - tags_number*6.32
+    quality = follower_number * 0.000525 + likes_number * 0.989 - tags_number * 6.32
     if quality < 0:
         quality = 0
     if quality > 10000:
@@ -70,7 +70,7 @@ def get_user_influence_power(user):
     if quality == 0 or follower_number == 0:
         power = 0
     else:
-        power = math.log(quality*follower_number, 10)
+        power = math.log(quality * follower_number, 10)
     return power
 
 
@@ -113,7 +113,7 @@ def display_result(data_dict, confidence, username):
     if total_value == 0:
         return
     for size in sizes:
-        final_sizes.append(size/total_value)
+        final_sizes.append(size / total_value)
     explode = tuple(explode_list)
     patches, l_text, p_text = plt.pie(final_sizes, explode=explode, labels=labels, colors=colors,
                                       autopct='%3.1f%%', shadow=False, startangle=90, pctdistance=0.7)
@@ -167,7 +167,7 @@ def analyze_words(my_words, dictionary):
         local_similarity_dictionary[category] = 0
         distribution_dictionary[category] = list()
     distribution_dictionary['unknown'] = list()
-    one_tenth = int(len(my_words)/10)
+    one_tenth = int(len(my_words) / 10)
     current_number = 0
     progress = 0
     total_words = 0
@@ -258,6 +258,7 @@ def train_decision_tree(file_name):
     my_clf = tree.DecisionTreeClassifier()
     my_clf.fit(train_list, train_result)
     return my_clf
+
 
 wordlist = set(words.words())
 wordnet_lemmatizer = WordNetLemmatizer()

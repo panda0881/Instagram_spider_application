@@ -4,8 +4,6 @@ from nltk.corpus import words
 from nltk.corpus import wordnet as wn
 from nltk.corpus import wordnet_ic
 from sklearn import tree
-import math
-import os
 
 
 def formatting_data(dict_pair):
@@ -78,7 +76,7 @@ def analyze_words(my_words, dictionary):
         local_similarity_dictionary[category] = 0
         distribution_dictionary[category] = list()
     distribution_dictionary['unknown'] = list()
-    one_tenth = int(len(my_words)/10)
+    one_tenth = int(len(my_words) / 10)
     current_number = 0
     progress = 0
     total_words = 0
@@ -188,6 +186,5 @@ for data in test_data:
 print(test_result)
 print(result)
 print(clf.score(test_list, test_result))
-
 
 print('end')
