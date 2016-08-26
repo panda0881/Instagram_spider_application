@@ -7,6 +7,8 @@ from nltk.stem import WordNetLemmatizer
 from Instagram_Spider import *
 
 
+# This function is used to store the tag data into a local file such that you don't need to craw the data again
+# when you are trying to analysis the same user. Of course, you can choose disable this function in the main part.
 def store_tag_data(name, tag_data):
     file_name = 'user_tag_data/' + name + '_tag_data.json'
     file = open(file_name, 'w')
@@ -14,6 +16,7 @@ def store_tag_data(name, tag_data):
     file.close()
 
 
+# This function is used to load the data about a specific tag from a local file.
 def load_tag_data(name):
     file_name = 'user_tag_data/' + name + '_tag_data.json'
     file = open(file_name, 'r')
@@ -22,6 +25,9 @@ def load_tag_data(name):
     return tag_data
 
 
+# This function is used to get the data for a specific user. Firstly, this function will detect whether you have already
+# the data or not. If you do have the data stored in your local file, this function will load the data out of that
+# file. Otherwise, this function will start to craw the data about this specific user from online source.
 def get_data(my_spider, name):
     file_name = 'user_tag_data/' + name + '_tag_data.json'
     if os.path.isfile(file_name):
@@ -32,6 +38,7 @@ def get_data(my_spider, name):
     return tag_data
 
 
+# This function is used to clean up the strange character such that we can use it for natural language processing.
 def clean_up_string(old_string):
     characters = 'QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm'
     new_string = ''
@@ -41,6 +48,10 @@ def clean_up_string(old_string):
     return new_string.lower()
 
 
+# This function is used to predict the social influence of a specific user. Basically, we use data, which includes
+# the number of followers, the average number of likes and tags used per post, to predict the social influence power
+# of this specific user. We used linear regression and existing data to build the mechanism of the prediction.
+# The score is 0 to 10 and 10 means the most influential people.
 def get_user_influence_power(user):
     print('start to analyze the social influence power of this user...')
     data = spider.get_user_data(user)
@@ -73,26 +84,14 @@ def get_user_influence_power(user):
     return power
 
 
-def successful_rate(successful_list, fail_list):
-    successful_number = 0
-    fail_number = 0
-    for tag_pair in successful_list:
-        successful_number += tag_pair[1]
-    for tag_pair in fail_list:
-        fail_number += tag_pair[1]
-    if successful_number == 0 and fail_number == 0:
-        my_rate = 0
-    else:
-        my_rate = successful_number / (successful_number + fail_number)
-    return my_rate
-
-
+# This function is used to store the dictionary when you are trying to modify the dictionary.
 def store_dictionary(dict_name, dict_data):
     file = open(dict_name, 'w')
     json.dump(dict_data, file)
     file.close()
 
 
+# This function is used to load the dictionary from a local file.
 def load_dictionary(dict_name):
     file = open(dict_name, 'r')
     dict_data = json.load(file)
@@ -100,6 +99,8 @@ def load_dictionary(dict_name):
     return dict_data
 
 
+# This function is used to visualize the analysis result of the user. Basically, we use matplotlib to do the work
+# and the result will be stored as a png file.
 def display_result(data_dict, confidence, username):
     if confidence < 0.4:
         return
@@ -141,9 +142,10 @@ def display_result(data_dict, confidence, username):
     plt.text(-1.2, 1, 'social influence: ' + str(user_influence), fontsize=15)
     file_name = 'user_analysis_result/' + username + '_analysis.png'
     plt.savefig(file_name, format='png')
-    # plt.show()
 
 
+# This function combine our own dictionary into the overall dictionary such that some special words
+# can be recognised by the function.
 def combine_dictionary(official_word_list, dictionary):
     official_word_list1 = list(official_word_list)
     for category in dictionary:
@@ -154,6 +156,7 @@ def combine_dictionary(official_word_list, dictionary):
     return official_word_list2
 
 
+# This function converts the tags into words using the maximum recognition algorithm.
 def tag2word(tag_list):
     result_list = list()
     for tag_pair in tag_list:
@@ -172,6 +175,9 @@ def tag2word(tag_list):
     return result_list
 
 
+# This function analyze all the words that we get from the tags and calculate the similarity of those words with what
+# we already got in the dictionary and thus this function will use those results to produce an interest distribution
+# map of this user.
 def analyze_words(my_words, dictionary):
     similarity_dictionary = dict()
     local_similarity_dictionary = dict()
@@ -260,7 +266,7 @@ def analyze_words(my_words, dictionary):
     store_dictionary('Instagram_tag_dictionary.json', dictionary)
     return similarity_dictionary, recognition_rate, distribution_dictionary, percentage_dictionary
 
-
+# setting up all the essential preparation
 wordlist = set(words.words())
 wordnet_lemmatizer = WordNetLemmatizer()
 brown_ic = wordnet_ic.ic('ic-brown.dat')
@@ -268,8 +274,9 @@ semcor_ic = wordnet_ic.ic('ic-semcor.dat')
 my_dictionary = load_dictionary('Instagram_tag_dictionary.json')
 wordlist = combine_dictionary(wordlist, my_dictionary)
 spider = InstagramSpider()
-
+# get the username from user
 username = input('Please give me the user name to analyze: ')
+# get the tag data of this user
 data = get_data(spider, username)
 print('data got...')
 print('analyzing tags from user: ' + username)
@@ -280,6 +287,7 @@ result, rate, distribute_result, percentage_result = analyze_words(my_words=word
 print("successful rate of fitting words into dictionary is：%.2f%%" % (rate * 100))
 recognize_rate = 1 - percentage_result['unknown']
 print("our machine's current recognize rate is：%.2f%%" % (recognize_rate * 100))
+# visualize the result
 display_result(data_dict=percentage_result, confidence=recognize_rate, username=username)
 
 print('end')
