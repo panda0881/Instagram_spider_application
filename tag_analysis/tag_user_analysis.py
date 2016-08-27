@@ -316,7 +316,7 @@ def record_info(tag_dict, spider, file_name):
             print('There is something wrong with the data about ' + user)
     my_file.close()
 
-# setting up all the necessary preparation
+# Setting up all the necessary preparation
 wordlist = set(words.words())
 wordnet_lemmatizer = WordNetLemmatizer()
 brown_ic = wordnet_ic.ic('ic-brown.dat')
@@ -325,7 +325,7 @@ my_dictionary = load_dictionary('Instagram_tag_dictionary.json')
 wordlist = combine_dictionary(wordlist, my_dictionary)
 spider = InstagramSpider()
 sample_tag_name = 'airbnb'
-# create the folder to store the data
+# Create the folder to store the data
 if not os.path.exists('tag_analysis_result/' + sample_tag_name + '/samples'):
     os.makedirs('tag_analysis_result/' + sample_tag_name + '/samples')
 
@@ -339,7 +339,7 @@ my_file.close()
 
 top_media_list, full_media_list = spider.get_media_from_tag(sample_tag_name)
 user_list = list()
-# pick 100 users from this tag. Of course, you can change the number if you want.
+# Pick 100 users from this tag. Of course, you can change the number if you want.
 for media in full_media_list:
     data = spider.get_media_data(media)
     user_list.append(data['owner']['username'])
