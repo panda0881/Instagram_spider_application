@@ -9,6 +9,8 @@ import os
 import csv
 
 
+# This function is used to store the tag data into a local file such that you don't need to craw the data again
+# when you are trying to analysis the same user. Of course, you can choose disable this function in the main part.
 def store_tag_data(name, tag_data):
     file_name = 'user_tag_data/' +name + '_tag_data.json'
     file = open(file_name, 'w')
@@ -16,6 +18,7 @@ def store_tag_data(name, tag_data):
     file.close()
 
 
+# This function is used to load the data about a specific tag from a local file.
 def load_tag_data(name):
     file_name = 'user_tag_data/' +name + '_tag_data.json'
     file = open(file_name, 'r')
@@ -24,6 +27,7 @@ def load_tag_data(name):
     return tag_data
 
 
+# This function is used to clean up the strange character such that we can use it for natural language processing.
 def clean_up_string(old_string):
     characters = 'QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm'
     new_string = ''
@@ -33,6 +37,10 @@ def clean_up_string(old_string):
     return new_string.lower()
 
 
+# This function is used to predict the social influence of a specific user. Basically, we use data, which includes
+# the number of followers, the average number of likes and tags used per post, to predict the social influence power
+# of this specific user. We used linear regression and existing data to build the mechanism of the prediction.
+# The score is 0 to 10 and 10 means the most influential people.
 def get_user_influence_power(user):
     print('start to analyze the social influence power of this user...')
     data = spider.get_user_data(user)
@@ -65,12 +73,14 @@ def get_user_influence_power(user):
     return power
 
 
+# This function is used to store the dictionary when you are trying to modify the dictionary.
 def store_dictionary(dict_name, dict_data):
     file = open(dict_name, 'w')
     json.dump(dict_data, file)
     file.close()
 
 
+# This function is used to load the dictionary from a local file.
 def load_dictionary(dict_name):
     file = open(dict_name, 'r')
     dict_data = json.load(file)
@@ -78,6 +88,8 @@ def load_dictionary(dict_name):
     return dict_data
 
 
+# This function is used to visualize the analysis result of the user. Basically, we use matplotlib to do the work
+# and the result will be stored as a png file.
 def display_result(data_dict, confidence, username, tag_name):
     plt.figure(figsize=(9, 9))
     labels = ['family', 'sport', 'animal', 'art', 'technology', 'life', 'fashion', 'food', 'travel']
@@ -117,6 +129,8 @@ def display_result(data_dict, confidence, username, tag_name):
     plt.savefig(file_name, format='png')
 
 
+# This function is used to visualize the analysis overall result of this tag. Basically, we use matplotlib to do the
+# work and the result will be stored as a png file.
 def display_tag_result(data_dict, confidence, tag_name):
     plt.figure(figsize=(9, 9))
     labels = ['family', 'sport', 'animal', 'art', 'technology', 'life', 'fashion', 'food', 'travel']
@@ -156,6 +170,8 @@ def display_tag_result(data_dict, confidence, tag_name):
     plt.savefig(file_name, format='png')
 
 
+# This function combine our own dictionary into the overall dictionary such that some special words
+# can be recognised by the function.
 def combine_dictionary(official_word_list, dictionary):
     official_word_list1 = list(official_word_list)
     for category in dictionary:
@@ -166,6 +182,7 @@ def combine_dictionary(official_word_list, dictionary):
     return official_word_list2
 
 
+# This function converts the tags into words using the maximum recognition algorithm.
 def tag2word(tag_list):
     result_list = list()
     for tag_pair in tag_list:
@@ -184,6 +201,9 @@ def tag2word(tag_list):
     return result_list
 
 
+# This function analyze all the words that we get from the tags and calculate the similarity of those words with what
+# we already got in the dictionary and thus this function will use those results to produce an interest distribution
+# map of this user.
 def analyze_words(my_words, dictionary):
     local_similarity_dictionary = dict()
     distribution_dictionary = dict()
@@ -261,6 +281,7 @@ def analyze_words(my_words, dictionary):
     return distribution_dictionary, percentage_dictionary
 
 
+# This function helps filter out all the characters that can't be encoded by 'UTF-8'.
 def strange_character_filter(input_string):
     if input_string is None:
         return ' '
@@ -275,6 +296,7 @@ def strange_character_filter(input_string):
     return output_string
 
 
+# This function records the data about all the people under this tag into a local file.
 def record_info(tag_dict, spider, file_name):
     my_file = open(file_name, 'a', newline='')
     my_writer = csv.writer(my_file)
@@ -294,7 +316,7 @@ def record_info(tag_dict, spider, file_name):
             print('There is something wrong with the data about ' + user)
     my_file.close()
 
-
+# setting up all the necessary preparation
 wordlist = set(words.words())
 wordnet_lemmatizer = WordNetLemmatizer()
 brown_ic = wordnet_ic.ic('ic-brown.dat')
@@ -303,6 +325,7 @@ my_dictionary = load_dictionary('Instagram_tag_dictionary.json')
 wordlist = combine_dictionary(wordlist, my_dictionary)
 spider = InstagramSpider()
 sample_tag_name = 'airbnb'
+# create the folder to store the data
 if not os.path.exists('tag_analysis_result/' + sample_tag_name + '/samples'):
     os.makedirs('tag_analysis_result/' + sample_tag_name + '/samples')
 
@@ -316,7 +339,7 @@ my_file.close()
 
 top_media_list, full_media_list = spider.get_media_from_tag(sample_tag_name)
 user_list = list()
-
+# pick 100 users from this tag. Of course, you can change the number if you want.
 for media in full_media_list:
     data = spider.get_media_data(media)
     user_list.append(data['owner']['username'])
@@ -350,8 +373,10 @@ for username in user_list:
     confidence_list.append(recognize_rate)
     tag_result[username] = data
     print('Current result is: ' + str(len(total_data_list)))
+    # pick 50 valid examples to analyze the tag
     if len(total_data_list) >= 50:
         break
+# Calculate the overall recognition rate of this tag.
 tag_distribute_result = dict()
 for category in total_data_list[0]:
     tag_distribute_result[category] = 0
@@ -368,7 +393,9 @@ total_confidence = 0
 for confidence in confidence_list:
     total_confidence += confidence
 confidence = total_confidence/len(confidence_list)
+# Visualize the data
 display_tag_result(data_dict=tag_distribute_result, confidence=confidence, tag_name=sample_tag_name)
+# Record the data into a local file
 record_info(tag_dict=tag_result, spider=spider, file_name=file_name)
 
 print('end')

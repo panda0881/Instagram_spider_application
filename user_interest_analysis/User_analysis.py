@@ -266,7 +266,7 @@ def analyze_words(my_words, dictionary):
     store_dictionary('Instagram_tag_dictionary.json', dictionary)
     return similarity_dictionary, recognition_rate, distribution_dictionary, percentage_dictionary
 
-# setting up all the essential preparation
+# setting up all the necessary preparation
 wordlist = set(words.words())
 wordnet_lemmatizer = WordNetLemmatizer()
 brown_ic = wordnet_ic.ic('ic-brown.dat')
