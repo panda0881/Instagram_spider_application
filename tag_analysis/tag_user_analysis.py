@@ -292,7 +292,7 @@ def strange_character_filter(input_string):
                 character.encode("gbk")
                 output_string += character
             except UnicodeEncodeError:
-                output_string = output_string
+                pass
     return output_string
 
 
